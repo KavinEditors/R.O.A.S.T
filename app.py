@@ -2,65 +2,62 @@ import streamlit as st
 import requests
 import os
 
-# Set page
+# Set page config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
-st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
-st.markdown("Enter a message and let the bot burn it down brutally... 😈")
 
-# OpenRouter API Key
-OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
-API_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "mistralai/mixtral-8x7b"  # Or use "openai/gpt-3.5-turbo", etc.
+# Title and subtitle
+st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
+st.markdown("Let the AI roast your message like a pro. Enter anything dumb or sus below...")
+
+# Load API key securely
+api_key = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
 
 # Initialize chat history
 if "chat" not in st.session_state:
     st.session_state.chat = []
 
-# Detect creator questions
+# Detect if user is asking about the bot's creator
 def is_creator_question(msg):
-    triggers = ["who made", "who created", "your creator", "who did you", "developer"]
-    return any(trigger in msg.lower() for trigger in triggers)
+    msg = msg.lower()
+    return any(q in msg for q in ["who made you", "who created you", "who built you", "your creator", "who did you"])
 
-# Roast using OpenRouter
-def get_roast(message):
+# Function to get roast reply from OpenRouter
+def get_roast(user_msg):
     prompt = f"""
-Roast this message in a clever, brutal, and sarcastic way. Keep it clean (no NSFW/hate).
-Make sure it's at least 4 lines long.
+Roast the following message with brutal wit and sarcasm. Be hilarious and clever — make the roast at least 4 lines long. Keep it clean (no NSFW or hate speech).
 
-Message to roast: "{message}"
+Message: "{user_msg}"
 """
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "HTTP-Referer": "https://roast-app.streamlit.app",  # Replace with your app URL
-        "X-Title": "ROAST App",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": "You are a savage roast bot. You destroy egos with humor."},
-            {"role": "user", "content": prompt}
-        ]
-    }
     try:
-        response = requests.post(API_URL, headers=headers, json=data)
-        response.raise_for_status()
-        reply = response.json()["choices"][0]["message"]["content"]
-        return reply.strip()
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "mistral/mistral-7b-instruct",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 1
+            }
+        )
+
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
         return "😏 R.O.A.S.T. Bot: 🔥 Couldn't roast properly right now. Try again later."
 
-# Display chat
-for entry in st.session_state.chat:
-    if entry["sender"] == "user":
-        st.markdown(f"😎 You: {entry['msg']}")
+# Display chat history
+for msg in st.session_state.chat:
+    if msg["sender"] == "user":
+        st.markdown(f"😎 **You:** {msg['msg']}")
     else:
-        st.markdown(f"😏 R.O.A.S.T. Bot: {entry['msg']}")
+        st.markdown(f"😏 **R.O.A.S.T. Bot:** {msg['msg']}")
 
-# Input box
-col1, col2 = st.columns([6, 1])
+# Input box and send button
+col1, col2 = st.columns([8, 1])
 with col1:
-    user_input = st.text_input(" ", key="input", placeholder="Type your message here...", label_visibility="collapsed")
+    user_input = st.text_input(" ", key="input", placeholder="Type your dumb message...", label_visibility="collapsed")
 with col2:
     send = st.button("➡️")
 
@@ -74,4 +71,4 @@ if send and user_input:
         reply = get_roast(user_input)
 
     st.session_state.chat.append({"sender": "bot", "msg": reply})
-    st.experimental_rerun()
+    st.session_state.input = ""  # clear input
