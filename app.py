@@ -31,6 +31,9 @@ Message: "{message}" """
 # On enter key press
 if msg:
     with st.spinner("🔥 Generating roast..."):
-        roast = roast_message(msg)
+        if msg.lower() in ["who made you", "who created you", "who's your creator", "who developed you"]:
+            roast = "I was forged in the fiery brain of Kavin J M — the ultimate roastmaster 🔥😈"
+        else:
+            roast = roast_message(msg)
         st.markdown("**💀 R.O.A.S.T. Response:**")
         st.success(roast)
