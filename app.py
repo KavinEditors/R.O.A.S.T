@@ -1,26 +1,25 @@
 import streamlit as st
 import requests
 
-# Set up OpenRouter API
+# Set up OpenRouter API key
 api_key = st.secrets["OPENROUTER_API_KEY"]
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "openai/gpt-3.5-turbo"
 
-# Page Config
+# Page config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
 st.markdown("Talk to the savage AI and get roasted 💀. Ask anything dumb or sus and feel the burn.")
 
-# Session state to track conversation
+# Initialize session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Keywords that trigger creator identity
+# Trigger words to detect creator question
 creator_keywords = ["who made", "who created", "who developed", "your creator", "who built", "who coded"]
 
-# Roast Function
+# Roast generation function
 def roast_message(user_msg):
-    # Check if the message is about creator
     if any(key in user_msg.lower() for key in creator_keywords):
         return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
 
@@ -46,23 +45,19 @@ def roast_message(user_msg):
     except Exception as e:
         return f"💥 Error: {str(e)}"
 
-# --- Show Chat Above Input ---
+# Display chat above input
 for entry in st.session_state.chat_history:
-    st.markdown(f"** 😎 You:** {entry['user']}")
-    st.markdown(f"**😏 R.O.A.S.T. Bot:** {entry['bot']}")
+    st.markdown(f"**🧍 You:** {entry['user']}")
+    st.markdown(f"**🤖 R.O.A.S.T. Bot:** {entry['bot']}")
     st.markdown("---")
 
-# --- Input Form ---
-with st.form("chat_form", clear_on_submit=True):
-    user_input = st.text_input("Type your message:", placeholder="Type something dumb to get roasted...")
-    submitted = st.form_submit_button("Send")
+# User input
+user_input = st.text_input("Type your message:", placeholder="Say something dumb...")
 
-# --- Process Input ---
-if submitted and user_input:
+# Submit button
+if st.button("Send") and user_input:
     with st.spinner("🔥 Generating roast..."):
-        bot_reply = roast_message(user_input)
-        st.session_state.chat_history.append({
-            "user": user_input,
-            "bot": bot_reply
-        })
-    st.experimental_rerun()
+        reply = roast_message(user_input)
+        st.session_state.chat_history.append({"user": user_input, "bot": reply})
+        st.experimental_set_query_params(dummy_reload=st.session_state.get("reload", 0) + 1)  # quick dummy refresh
+        st.session_state.reload = st.session_state.get("reload", 0) + 1
