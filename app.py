@@ -51,7 +51,7 @@ for entry in st.session_state.chat_history:
     st.markdown(f"**🤖 R.O.A.S.T. Bot:** {entry['bot']}")
     st.markdown("---")
 
-# User input
+# User input box
 user_input = st.text_input("Type your message:", placeholder="Say something dumb...")
 
 # Submit button
@@ -59,5 +59,4 @@ if st.button("Send") and user_input:
     with st.spinner("🔥 Generating roast..."):
         reply = roast_message(user_input)
         st.session_state.chat_history.append({"user": user_input, "bot": reply})
-        st.experimental_set_query_params(dummy_reload=st.session_state.get("reload", 0) + 1)  # quick dummy refresh
-        st.session_state.reload = st.session_state.get("reload", 0) + 1
+        st.query_params.update(dummy_reload=str(len(st.session_state.chat_history)))  # Updated to st.query_params
