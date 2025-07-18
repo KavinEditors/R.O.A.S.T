@@ -1,39 +1,52 @@
 import streamlit as st
-import google.generativeai as genai
-import os
+import requests
 
-# Set up Gemini API key (secrets for Streamlit Cloud, fallback to local env)
-api_key = st.secrets["GEMINI_API_KEY"] if "GEMINI_API_KEY" in st.secrets else os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
+# Get OpenRouter API key from Streamlit Secrets or local env
+api_key = st.secrets["OPENROUTER_API_KEY"]
 
-# Load Gemini model
-model = genai.GenerativeModel("gemini-1.0-pro")
+# OpenRouter endpoint
+API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Streamlit UI config
+# Choose a model you have access to (gpt-3.5-turbo is safe)
+MODEL = "openai/gpt-3.5-turbo"
+
+# Streamlit page config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
 st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
 
-# Input box
+# User input
 msg = st.text_input("Type here:", placeholder="Write something sus or dumb...")
 
-# Roast function
+# Roast generator
 def roast_message(message):
-    prompt = f"""Roast the following message in the most savage, humorous, and sarcastic way possible.
-Make it witty, clever, and brutal — but keep it clean (no NSFW, no hate speech).
-Message: "{message}" """
+    if message.lower() in ["who made you", "who created you", "who's your creator", "who developed you"]:
+        return "I was forged in the fiery brain of Kavin J M — the ultimate roastmaster 🔥😈"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": "You are a savage roastbot. Your job is to roast the user's message in a humorous, sarcastic, and brutal (but clean) way."},
+            {"role": "user", "content": message}
+        ]
+    }
+
     try:
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        response = requests.post(API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        roast = response.json()["choices"][0]["message"]["content"].strip()
+        return roast
     except Exception as e:
         return f"💥 Error: {str(e)}"
 
-# On enter key press
+# Trigger roast
 if msg:
     with st.spinner("🔥 Generating roast..."):
-        if msg.lower() in ["who made you", "who created you", "who's your creator", "who developed you"]:
-            roast = "I was forged in the fiery brain of Kavin J M — the ultimate roastmaster 🔥😈"
-        else:
-            roast = roast_message(msg)
+        roast = roast_message(msg)
         st.markdown("**💀 R.O.A.S.T. Response:**")
         st.success(roast)
