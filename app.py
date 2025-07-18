@@ -1,31 +1,35 @@
 import streamlit as st
 import requests
 
-# Setup API
+# Set up OpenRouter API
 api_key = st.secrets["OPENROUTER_API_KEY"]
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "openai/gpt-3.5-turbo"
 
-# Page config
+# Page Config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
 st.markdown("Talk to the savage AI and get roasted 💀. Ask anything dumb or sus and feel the burn.")
 
-# Session state for chat history
+# Session state to track conversation
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Roast function
+# Keywords that trigger creator identity
+creator_keywords = ["who made", "who created", "who developed", "your creator", "who built", "who coded"]
+
+# Roast Function
 def roast_message(user_msg):
-    if user_msg.lower() in ["who made you", "who created you", "who's your creator", "who developed you"]:
-        return "I was forged in the fiery brain of Kavin J M — the ultimate roastmaster 🔥😈"
+    # Check if the message is about creator
+    if any(key in user_msg.lower() for key in creator_keywords):
+        return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
-    messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, but keep it clean."}]
+    messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, but keep it clean (no NSFW)."}]
     for entry in st.session_state.chat_history:
         messages.append({"role": "user", "content": entry["user"]})
         messages.append({"role": "assistant", "content": entry["bot"]})
@@ -42,12 +46,18 @@ def roast_message(user_msg):
     except Exception as e:
         return f"💥 Error: {str(e)}"
 
-# Input box at bottom
+# --- Show Chat Above Input ---
+for entry in st.session_state.chat_history:
+    st.markdown(f"** 😎 You:** {entry['user']}")
+    st.markdown(f"**😏 R.O.A.S.T. Bot:** {entry['bot']}")
+    st.markdown("---")
+
+# --- Input Form ---
 with st.form("chat_form", clear_on_submit=True):
     user_input = st.text_input("Type your message:", placeholder="Type something dumb to get roasted...")
     submitted = st.form_submit_button("Send")
 
-# On user input
+# --- Process Input ---
 if submitted and user_input:
     with st.spinner("🔥 Generating roast..."):
         bot_reply = roast_message(user_input)
@@ -55,9 +65,4 @@ if submitted and user_input:
             "user": user_input,
             "bot": bot_reply
         })
-
-# Show full conversation (chatbot style)
-for entry in st.session_state.chat_history:
-    st.markdown(f"**🧍 You:** {entry['user']}")
-    st.markdown(f"**🤖 R.O.A.S.T. Bot:** {entry['bot']}")
-    st.markdown("---")
+    st.experimental_rerun()
