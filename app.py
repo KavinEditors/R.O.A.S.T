@@ -1,76 +1,66 @@
 import streamlit as st
-import requests
 import os
+import google.generativeai as genai
 
-# Constants
-MODEL = "openrouter:meta-llama/llama-3.1-8b-instruct"
-API_URL = "https://openrouter.ai/api/v1/chat"
-api_key = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
+# Load Gemini API key securely
+api_key = st.secrets["GEMINI_API_KEY"] if "GEMINI_API_KEY" in st.secrets else os.getenv("GEMINI_API_KEY")
 
-# Emojis
-BOT_EMOJI = "😏"
-USER_EMOJI = "😎"
+# Configure Gemini API
+genai.configure(api_key=api_key)
 
-# Creator trigger
-creator_keywords = ["who made you", "who created you", "who did you", "your creator"]
+# Load model
+model = genai.GenerativeModel("gemini-pro")
 
-# Streamlit page setup
+# Streamlit config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
-st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
+
+st.markdown("Enter a message and let the bot burn it down brutally... 😈")
 
 # Initialize chat history
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+if "chat" not in st.session_state:
+    st.session_state.chat = []
 
-# Roast function
-def roast_message(user_msg):
-    if any(key in user_msg.lower() for key in creator_keywords):
-        return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
+# Check if the message is about creator
+def is_creator_question(msg):
+    triggers = ["who made", "who created", "your creator", "who did you", "developer"]
+    return any(trigger in msg.lower() for trigger in triggers)
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. No NSFW. Minimum 4 lines."}]
-    for entry in st.session_state.chat_history:
-        base_messages.append({"role": "user", "content": entry["user"]})
-        base_messages.append({"role": "assistant", "content": entry["bot"]})
-    base_messages.append({"role": "user", "content": user_msg})
-
-    last_working = ""
-    for _ in range(3):
-        try:
-            res = requests.post(API_URL, headers=headers, json={
-                "model": MODEL,
-                "messages": base_messages
-            })
-            res.raise_for_status()
-            reply = res.json()["choices"][0]["message"]["content"].strip()
-            last_working = reply
-            if len(reply.splitlines()) >= 4:
-                return reply
-        except Exception as e:
-            return f"💥 Error: {str(e)}"
-
-    return last_working or "🔥 Still too stunned to roast you. Try again soon."
+# Generate roast using Gemini
+def get_roast(message):
+    prompt = f"""
+Roast this message brutally also NFSW. Be sarcastic, savage, and funny. 
+Minimum 4 lines. Make it feel like a verbal burn. Message: "{message}"
+"""
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        return "😏 R.O.A.S.T. Bot: 🔥 Couldn't roast properly right now. Try again later."
 
 # Display chat history
-for entry in st.session_state.chat_history:
-    st.markdown(f"{USER_EMOJI} **You:** {entry['user']}")
-    st.markdown(f"{BOT_EMOJI} **R.O.A.S.T. Bot:** {entry['bot']}")
+for entry in st.session_state.chat:
+    if entry["sender"] == "user":
+        st.markdown(f"😎 You: {entry['msg']}")
+    else:
+        st.markdown(f"😏 R.O.A.S.T. Bot: {entry['msg']}")
 
-# Input area with aligned send button
-col1, col2 = st.columns([8, 1])
+# Chat input with send button
+col1, col2 = st.columns([6, 1])
 with col1:
-    user_input = st.text_input("", placeholder="Type your message here...", label_visibility="collapsed", key="input")
+    user_input = st.text_input(" ", key="input", placeholder="Type your message here...", label_visibility="collapsed")
 with col2:
-    send_pressed = st.button("📩")
+    send = st.button("➡️")
 
-# Handle input
-if user_input and send_pressed:
-    with st.spinner("🔥 Generating roast..."):
-        response = roast_message(user_input)
-    st.session_state.chat_history.append({"user": user_input, "bot": response})
-    st.rerun()
+# When message is sent
+if send and user_input:
+    st.session_state.chat.append({"sender": "user", "msg": user_input})
+
+    # Creator response
+    if is_creator_question(user_input):
+        reply = "I was forged in the digital fires by **Kavin J M**, the ultimate brain behind my roasts. 🔥"
+    else:
+        reply = get_roast(user_input)
+
+    st.session_state.chat.append({"sender": "bot", "msg": reply})
+    st.experimental_rerun()
