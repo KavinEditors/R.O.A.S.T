@@ -7,7 +7,7 @@ api_key = st.secrets["GEMINI_API_KEY"] if "GEMINI_API_KEY" in st.secrets else os
 genai.configure(api_key=api_key)
 
 # Load Gemini model
-model = genai.GenerativeModel("gemini-pro")
+model = genai.GenerativeModel("gemini-1.0-pro")
 
 # Streamlit UI config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
