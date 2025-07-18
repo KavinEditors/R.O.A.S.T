@@ -1,23 +1,29 @@
 import streamlit as st
 import requests
+import os
 
-# Config
+# Constants
+MODEL = "openrouter:meta-llama/llama-3.1-8b-instruct"
+API_URL = "https://openrouter.ai/api/v1/chat"
+api_key = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
+
+# Emojis
+BOT_EMOJI = "😏"
+USER_EMOJI = "😎"
+
+# Creator trigger
+creator_keywords = ["who made you", "who created you", "who did you", "your creator"]
+
+# Streamlit page setup
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
-st.markdown("Talk to the savage AI and get roasted 💀. Ask anything dumb or sus and feel the burn.")
+st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
 
-# API setup
-api_key = st.secrets["OPENROUTER_API_KEY"]
-API_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "openai/gpt-3.5-turbo"
-
-# Session state
+# Initialize chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-creator_keywords = ["who made", "who created", "who developed", "your creator", "who built", "who coded"]
-
-# Roast generation
+# Roast function
 def roast_message(user_msg):
     if any(key in user_msg.lower() for key in creator_keywords):
         return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
@@ -33,7 +39,8 @@ def roast_message(user_msg):
         base_messages.append({"role": "assistant", "content": entry["bot"]})
     base_messages.append({"role": "user", "content": user_msg})
 
-    for _ in range(3):  # Try 3 times to get 4+ lines
+    last_working = ""
+    for _ in range(3):
         try:
             res = requests.post(API_URL, headers=headers, json={
                 "model": MODEL,
@@ -41,29 +48,29 @@ def roast_message(user_msg):
             })
             res.raise_for_status()
             reply = res.json()["choices"][0]["message"]["content"].strip()
+            last_working = reply
             if len(reply.splitlines()) >= 4:
                 return reply
         except Exception as e:
             return f"💥 Error: {str(e)}"
 
-    return "🔥 Couldn't roast properly right now. Try again later."
+    return last_working or "🔥 Still too stunned to roast you. Try again soon."
 
 # Display chat history
 for entry in st.session_state.chat_history:
-    st.markdown(f"**😎 You:** {entry['user']}")
-    st.markdown(f"**😏 R.O.A.S.T. Bot:** {entry['bot']}")
-    st.markdown("---")
+    st.markdown(f"{USER_EMOJI} **You:** {entry['user']}")
+    st.markdown(f"{BOT_EMOJI} **R.O.A.S.T. Bot:** {entry['bot']}")
 
-# Chat input layout (input + button inline)
-col1, col2 = st.columns([6, 1])
+# Input area with aligned send button
+col1, col2 = st.columns([8, 1])
 with col1:
-    user_input = st.text_input("Type your message:", key="user_input", label_visibility="collapsed", placeholder="Say something dumb...")
+    user_input = st.text_input("", placeholder="Type your message here...", label_visibility="collapsed", key="input")
 with col2:
-    send_clicked = st.button("Send")
+    send_pressed = st.button("📩")
 
-# On send
-if send_clicked and user_input.strip():
-    with st.spinner("🔥 Roasting you..."):
-        reply = roast_message(user_input)
-        st.session_state.chat_history.append({"user": user_input, "bot": reply})
-        st.query_params.update(dummy_reload=str(len(st.session_state.chat_history)))
+# Handle input
+if user_input and send_pressed:
+    with st.spinner("🔥 Generating roast..."):
+        response = roast_message(user_input)
+    st.session_state.chat_history.append({"user": user_input, "bot": response})
+    st.rerun()
