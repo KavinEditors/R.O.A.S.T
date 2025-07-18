@@ -1,26 +1,23 @@
 import streamlit as st
 import requests
 
-# Get OpenRouter API key from Streamlit Secrets or local env
+# Setup API
 api_key = st.secrets["OPENROUTER_API_KEY"]
-
-# OpenRouter endpoint
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
-
-# Choose a model you have access to (gpt-3.5-turbo is safe)
 MODEL = "openai/gpt-3.5-turbo"
 
-# Streamlit page config
+# Page config
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
-st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
+st.markdown("Talk to the savage AI and get roasted 💀. Ask anything dumb or sus and feel the burn.")
 
-# User input
-msg = st.text_input("Type here:", placeholder="Write something sus or dumb...")
+# Session state for chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Roast generator
-def roast_message(message):
-    if message.lower() in ["who made you", "who created you", "who's your creator", "who developed you"]:
+# Roast function
+def roast_message(user_msg):
+    if user_msg.lower() in ["who made you", "who created you", "who's your creator", "who developed you"]:
         return "I was forged in the fiery brain of Kavin J M — the ultimate roastmaster 🔥😈"
 
     headers = {
@@ -28,25 +25,39 @@ def roast_message(message):
         "Content-Type": "application/json"
     }
 
-    payload = {
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": "You are a savage roastbot. Your job is to roast the user's message in a humorous, sarcastic, and brutal (but clean) way."},
-            {"role": "user", "content": message}
-        ]
-    }
+    messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, but keep it clean."}]
+    for entry in st.session_state.chat_history:
+        messages.append({"role": "user", "content": entry["user"]})
+        messages.append({"role": "assistant", "content": entry["bot"]})
+    messages.append({"role": "user", "content": user_msg})
 
     try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        roast = response.json()["choices"][0]["message"]["content"].strip()
-        return roast
+        res = requests.post(API_URL, headers=headers, json={
+            "model": MODEL,
+            "messages": messages
+        })
+        res.raise_for_status()
+        reply = res.json()["choices"][0]["message"]["content"].strip()
+        return reply
     except Exception as e:
         return f"💥 Error: {str(e)}"
 
-# Trigger roast
-if msg:
+# Input box at bottom
+with st.form("chat_form", clear_on_submit=True):
+    user_input = st.text_input("Type your message:", placeholder="Type something dumb to get roasted...")
+    submitted = st.form_submit_button("Send")
+
+# On user input
+if submitted and user_input:
     with st.spinner("🔥 Generating roast..."):
-        roast = roast_message(msg)
-        st.markdown("**💀 R.O.A.S.T. Response:**")
-        st.success(roast)
+        bot_reply = roast_message(user_input)
+        st.session_state.chat_history.append({
+            "user": user_input,
+            "bot": bot_reply
+        })
+
+# Show full conversation (chatbot style)
+for entry in st.session_state.chat_history:
+    st.markdown(f"**🧍 You:** {entry['user']}")
+    st.markdown(f"**🤖 R.O.A.S.T. Bot:** {entry['bot']}")
+    st.markdown("---")
