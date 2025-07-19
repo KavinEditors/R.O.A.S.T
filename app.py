@@ -27,7 +27,7 @@ mood_colors = {
 left, center, right = st.columns([2, 5, 2])
 
 with left:
-    st.markdown("### 🧍 Name")
+    st.markdown("### 😎 Name")
     name = st.text_input("Enter your name", value=st.session_state.username)
     st.session_state.username = name.strip() or "user"
 
