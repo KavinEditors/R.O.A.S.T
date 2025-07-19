@@ -1,69 +1,76 @@
 import streamlit as st
-import openai
+import requests
 import os
 
-# Load API key
+# Constants
+MODEL = "openrouter:meta-llama/llama-3.1-8b-instruct"
+API_URL = "https://openrouter.ai/api/v1/chat"
 api_key = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
-openai.api_key = api_key
-openai.api_base = "https://openrouter.ai/api/v1"
 
-# Page config
+# Emojis
+BOT_EMOJI = "😏"
+USER_EMOJI = "😎"
+
+# Creator trigger
+creator_keywords = ["who made you", "who created you", "who did you", "your creator"]
+
+# Streamlit page setup
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
-st.markdown("Enter a dumb message and let the smirking bot destroy it. 😏")
+st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
 
-# Session state setup
-if "chat" not in st.session_state:
-    st.session_state.chat = []
-if "input_value" not in st.session_state:
-    st.session_state.input_value = ""
+# Initialize chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-def clear_input():
-    st.session_state.input_value = ""
+# Roast function
+def roast_message(user_msg):
+    if any(key in user_msg.lower() for key in creator_keywords):
+        return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
 
-def roast_response(message):
-    if any(x in message.lower() for x in ["who made you", "who created you", "who did you"]):
-        return "I was proudly created by the one and only **Kavin J M**. Bow down. 👑"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
 
-    prompt = f"""
-You are a brutally sarcastic AI called R.O.A.S.T.
-Roast the user's message in 4+ funny, brutal, clean lines (no NSFW, racism, hate speech).
-Be savage, clever, and witty.
+    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. use NSFW. "}]
+    for entry in st.session_state.chat_history:
+        base_messages.append({"role": "user", "content": entry["user"]})
+        base_messages.append({"role": "assistant", "content": entry["bot"]})
+    base_messages.append({"role": "user", "content": user_msg})
 
-User message: "{message}"
-"""
-    try:
-        response = openai.ChatCompletion.create(
-            model="mistralai/mistral-7b-instruct",
-            messages=[
-                {"role": "system", "content": "You are a savage but clean roastbot."},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        roast = response.choices[0].message.content.strip()
-        return roast
-    except Exception as e:
-        return "🔥 Couldn't roast properly right now. Try again later."
+    last_working = ""
+    for _ in range(3):
+        try:
+            res = requests.post(API_URL, headers=headers, json={
+                "model": MODEL,
+                "messages": base_messages
+            })
+            res.raise_for_status()
+            reply = res.json()["choices"][0]["message"]["content"].strip()
+            last_working = reply
+            if len(reply.splitlines()) >= 4:
+                return reply
+        except Exception as e:
+            return f"💥 Error: {str(e)}"
 
-# Display conversation
-for chat in st.session_state.chat:
-    if chat["sender"] == "user":
-        with st.chat_message("😎 User"):
-            st.markdown(chat["msg"])
-    else:
-        with st.chat_message("😏 R.O.A.S.T. Bot"):
-            st.markdown(chat["msg"])
+    return last_working or "🔥 Still too stunned to roast you. Try again soon."
 
-# Input field with send button on right
+# Display chat history
+for entry in st.session_state.chat_history:
+    st.markdown(f"{USER_EMOJI} **You:** {entry['user']}")
+    st.markdown(f"{BOT_EMOJI} **R.O.A.S.T. Bot:** {entry['bot']}")
+
+# Input area with aligned send button
 col1, col2 = st.columns([8, 1])
 with col1:
-    user_input = st.text_input(" ", key="input_value", placeholder="Type your dumb message...", label_visibility="collapsed")
+    user_input = st.text_input("", placeholder="Type your message here...", label_visibility="collapsed", key="input")
 with col2:
-    textsend = st.button("Send")
+    send_pressed = st.button("Send")
 
-if textsend and user_input:
-    st.session_state.chat.append({"sender": "user", "msg": user_input})
-    reply = roast_response(user_input)
-    st.session_state.chat.append({"sender": "bot", "msg": reply})
-    clear_input()
-    st.experimental_rerun()
+# Handle input
+if user_input and send_pressed:
+    with st.spinner("🔥 Generating roast..."):
+        response = roast_message(user_input)
+    st.session_state.chat_history.append({"user": user_input, "bot": response})
+    st.rerun()
