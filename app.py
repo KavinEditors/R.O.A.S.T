@@ -53,7 +53,7 @@ def roast_message(user_msg):
         "Content-Type": "application/json"
     }
 
-    persona = f"Roast {st.session_state.username} with hard roast. Roast every single mssg like hi, how are u, no mercy, very hard roast which can push anyone to peak of stress, also roast if name gave except user also roas his name."
+    persona = f"Roast {st.session_state.username} with hard roast. in 2 lines Roast every single mssg like hi, how are u, no mercy, very hard roast which can push anyone to peak of stress, also roast if name gave except user also roas his name."
     messages = [{"role": "system", "content": persona}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
