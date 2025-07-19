@@ -5,12 +5,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Get API Key securely
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-st.set_page_config(page_title="R.O.A.S.T", page_icon="🧯", layout="wide")
+# Page Setup
+st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
+# Session States
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -20,6 +23,15 @@ if "username" not in st.session_state:
 if "mood" not in st.session_state:
     st.session_state.mood = "Savage"
 
+# Mood Colors
+mood_colors = {
+    "SUS": "orange",
+    "Savage": "red",
+    "Dark Humour": "purple",
+    "Wholesome": "green"
+}
+
+# Mood Bar Chart
 def show_mood_chart():
     st.markdown("### 😎 Roast Bot Mood")
     mood_labels = ["Savage 🔥", "SUS 🕵️", "Dark Humour 🖤", "Wholesome 😊"]
@@ -31,6 +43,7 @@ def show_mood_chart():
     })
     st.bar_chart(mood_df.set_index("Mood"), use_container_width=True)
 
+# Sidebar
 left, center, right = st.columns([2, 5, 2])
 
 with left:
@@ -38,8 +51,21 @@ with left:
     name = st.text_input("Enter your name", value=st.session_state.username)
     st.session_state.username = name.strip() or "user"
 
+    st.markdown("---")
+    st.markdown("### 📊 Bot Mood")
+    mood = st.session_state.mood
+    color = mood_colors[mood]
+    fig, ax = plt.subplots(figsize=(3.5, 1.5))
+    ax.barh([mood], [100], color=color)
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Mood Intensity (%)")
+    ax.set_yticks([])
+    ax.set_title(mood)
+    st.pyplot(fig)
 
+    show_mood_chart()
 
+# Roast Message Generator
 def roast_message(user_msg):
     if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
         return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
@@ -67,12 +93,14 @@ def roast_message(user_msg):
     except Exception as e:
         return f"😏 💥 Error: {str(e)}"
 
+# Message Renderer
 def message_align(msg, sender="user"):
     align = "right" if sender == "user" else "left"
     emoji = "😎" if sender == "user" else "😏"
     html = f"<div style='text-align:{align}; margin:8px 0;'><b>{emoji}</b> {msg}</div>"
     st.markdown(html, unsafe_allow_html=True)
 
+# Main Chat UI
 with center:
     for chat in st.session_state.chat_history:
         message_align(chat["user"], "user")
