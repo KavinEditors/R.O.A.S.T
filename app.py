@@ -38,19 +38,7 @@ with left:
     name = st.text_input("Enter your name", value=st.session_state.username)
     st.session_state.username = name.strip() or "user"
 
-    st.markdown("---")
-    st.markdown("### 📊 Bot Mood")
-    mood = st.session_state.mood
-    color = mood_colors[mood]
-    fig, ax = plt.subplots(figsize=(3.5, 1.5))
-    ax.barh([mood], [100], color=color)
-    ax.set_xlim(0, 100)
-    ax.set_xlabel("Mood Intensity (%)")
-    ax.set_yticks([])
-    ax.set_title(mood)
-    st.pyplot(fig)
 
-    show_mood_chart()
 
 def roast_message(user_msg):
     if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
