@@ -18,7 +18,7 @@ def roast_message(user_msg):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    messages = [{"role": "system", "content": "You're a savage roastbot. Roast with humor, sarcasm, wit. No mercy. use nfsw"}]
+    messages = [{"role": "system", "content": "You're a savage roastbot. Roast with humor, sarcasm, wit. No mercy, roast worseee than anyone"}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
         messages.append({"role": "assistant", "content": chat["bot"]})
