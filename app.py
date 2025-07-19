@@ -2,28 +2,22 @@ import streamlit as st
 import requests
 import os
 
-# Constants
 MODEL = "openrouter:meta-llama/llama-3.1-8b-instruct"
 API_URL = "https://openrouter.ai/api/v1/chat"
 api_key = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
 
-# Emojis
 BOT_EMOJI = "😏"
 USER_EMOJI = "😎"
 
-# Creator trigger
 creator_keywords = ["who made you", "who created you", "who did you", "your creator"]
 
-# Streamlit page setup
 st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
 st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
 st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
 
-# Initialize chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Roast function
 def roast_message(user_msg):
     if any(key in user_msg.lower() for key in creator_keywords):
         return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
@@ -33,42 +27,61 @@ def roast_message(user_msg):
         "Content-Type": "application/json"
     }
 
-    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. use NSFW. "}]
+    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. Be funny but use NSFW or hate speech."}]
     for entry in st.session_state.chat_history:
         base_messages.append({"role": "user", "content": entry["user"]})
         base_messages.append({"role": "assistant", "content": entry["bot"]})
     base_messages.append({"role": "user", "content": user_msg})
 
-    last_working = ""
-    for _ in range(3):
-        try:
-            res = requests.post(API_URL, headers=headers, json={
-                "model": MODEL,
-                "messages": base_messages
-            })
-            res.raise_for_status()
-            reply = res.json()["choices"][0]["message"]["content"].strip()
-            last_working = reply
-            if len(reply.splitlines()) >= 4:
-                return reply
-        except Exception as e:
-            return f"💥 Error: {str(e)}"
+    try:
+        res = requests.post(API_URL, headers=headers, json={
+            "model": MODEL,
+            "messages": base_messages
+        })
+        res.raise_for_status()
+        reply = res.json()["choices"][0]["message"]["content"].strip()
+        if len(reply.splitlines()) >= 4:
+            return reply
+        return reply + "\n🔥 I expected more from a roast, but here you go."
+    except Exception as e:
+        return f"💥 Error: {str(e)}"
 
-    return last_working or "🔥 Still too stunned to roast you. Try again soon."
+chat_style = """
+<style>
+.user-bubble {
+    background-color: #dcf8c6;
+    padding: 10px 14px;
+    border-radius: 15px;
+    margin: 4px 0;
+    max-width: 75%;
+    float: right;
+    clear: both;
+    font-size: 16px;
+}
+.bot-bubble {
+    background-color: #f1f0f0;
+    padding: 10px 14px;
+    border-radius: 15px;
+    margin: 4px 0;
+    max-width: 75%;
+    float: left;
+    clear: both;
+    font-size: 16px;
+}
+</style>
+"""
+st.markdown(chat_style, unsafe_allow_html=True)
 
-# Display chat history
 for entry in st.session_state.chat_history:
-    st.markdown(f"{USER_EMOJI} **You:** {entry['user']}")
-    st.markdown(f"{BOT_EMOJI} **R.O.A.S.T. Bot:** {entry['bot']}")
+    st.markdown(f'<div class="user-bubble">{USER_EMOJI} {entry["user"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="bot-bubble">{BOT_EMOJI} {entry["bot"]}</div>', unsafe_allow_html=True)
 
-# Input area with aligned send button
 col1, col2 = st.columns([8, 1])
 with col1:
-    user_input = st.text_input("", placeholder="Type your message here...", label_visibility="collapsed", key="input")
+    user_input = st.text_input("Message Input", placeholder="Type your message here...", label_visibility="collapsed", key="input")
 with col2:
     send_pressed = st.button("Send")
 
-# Handle input
 if user_input and send_pressed:
     with st.spinner("🔥 Generating roast..."):
         response = roast_message(user_input)
