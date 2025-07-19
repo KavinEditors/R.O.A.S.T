@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥", layout="wide")
+st.set_page_config(page_title="R.O.A.S.T", page_icon="🧯", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
@@ -19,13 +19,6 @@ if "username" not in st.session_state:
 
 if "mood" not in st.session_state:
     st.session_state.mood = "Savage"
-
-mood_colors = {
-    "SUS": "orange",
-    "Savage": "red",
-    "Dark Humour": "purple",
-    "Wholesome": "green"
-}
 
 def show_mood_chart():
     st.markdown("### 😎 Roast Bot Mood")
