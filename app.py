@@ -2,86 +2,56 @@ import streamlit as st
 import requests
 import os
 
-MODEL = "openrouter:meta-llama/llama-3.1-8b-instruct"
-API_URL = "https://openrouter.ai/api/v1/chat"
-api_key = st.secrets["OPENROUTER_API_KEY"] if "OPENROUTER_API_KEY" in st.secrets else os.getenv("OPENROUTER_API_KEY")
+api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-BOT_EMOJI = "😏"
-USER_EMOJI = "😎"
-
-creator_keywords = ["who made you", "who created you", "who did you", "your creator"]
-
-st.set_page_config(page_title="R.O.A.S.T.", page_icon="🔥")
-st.title("🔥 R.O.A.S.T. (Really Offensive Automated Sus Terminator)")
-st.markdown("Enter a message below and let the AI burn it down. 🔥💀")
+st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥")
+st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 def roast_message(user_msg):
-    if any(key in user_msg.lower() for key in creator_keywords):
-        return "I was forged in the fiery brain of **Kavin J M** — the ultimate roastmaster 🔥😈"
-
+    if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
+        return "I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-
-    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. Be funny but use if needed NSFW hate speech."}]
-    for entry in st.session_state.chat_history:
-        base_messages.append({"role": "user", "content": entry["user"]})
-        base_messages.append({"role": "assistant", "content": entry["bot"]})
-    base_messages.append({"role": "user", "content": user_msg})
-
+    messages = [{"role": "system", "content": "You're a savage roastbot. Roast with humor, sarcasm, wit. No mercy. use nfsw"}]
+    for chat in st.session_state.chat_history:
+        messages.append({"role": "user", "content": chat["user"]})
+        messages.append({"role": "assistant", "content": chat["bot"]})
+    messages.append({"role": "user", "content": user_msg})
     try:
-        res = requests.post(API_URL, headers=headers, json={
-            "model": MODEL,
-            "messages": base_messages
-        })
+        res = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json={"model": "llama3-8b-8192", "messages": messages}
+        )
         res.raise_for_status()
-        reply = res.json()["choices"][0]["message"]["content"].strip()
-        if len(reply.splitlines()) >= 4:
-            return reply
-        return reply + "\n🔥 I expected more from a roast, but here you go."
+        return res.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        return f"💥 Error: {str(e)}"
+        return f"😏 💥 Error: {str(e)}"
 
-chat_style = """
-<style>
-.user-bubble, .bot-bubble {
-    background-color: #e0e0e0;
-    padding: 10px 14px;
-    border-radius: 15px;
-    margin: 6px 0;
-    max-width: 75%;
-    font-size: 16px;
-}
-.user-bubble {
-    float: right;
-    clear: both;
-    text-align: right;
-}
-.bot-bubble {
-    float: left;
-    clear: both;
-    text-align: left;
-}
-</style>
-"""
-st.markdown(chat_style, unsafe_allow_html=True)
+def message_align(msg, sender="user"):
+    align = "right" if sender == "user" else "left"
+    emoji = "😎" if sender == "user" else "😏"
+    html = f"<div style='text-align:{align}; margin:8px 0;'><b>{emoji}</b> {msg}</div>"
+    st.markdown(html, unsafe_allow_html=True)
 
-for entry in st.session_state.chat_history:
-    st.markdown(f'<div class="user-bubble">{USER_EMOJI} {entry["user"]}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="bot-bubble">{BOT_EMOJI} {entry["bot"]}</div>', unsafe_allow_html=True)
+for chat in st.session_state.chat_history:
+    message_align(chat["user"], "user")
+    message_align(chat["bot"], "bot")
 
 col1, col2 = st.columns([8, 1])
 with col1:
-    user_input = st.text_input("Message Input", placeholder="Type your message here...", label_visibility="collapsed", key="input")
+    user_input = st.text_input(" ", placeholder="Type your message...", label_visibility="collapsed", key="input")
 with col2:
-    send_pressed = st.button("Send")
+    send = st.button("Send")
 
-if user_input and send_pressed:
-    with st.spinner("🔥 Generating roast..."):
+if user_input and send:
+    with st.spinner("🔥 Cooking up a roast..."):
         response = roast_message(user_input)
     st.session_state.chat_history.append({"user": user_input, "bot": response})
     st.rerun()
