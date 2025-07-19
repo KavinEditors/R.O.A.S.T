@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 import os
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
@@ -21,8 +23,20 @@ if "mood" not in st.session_state:
 mood_colors = {
     "SUS": "orange",
     "Savage": "red",
-    "Dark Humour": "purple"
+    "Dark Humour": "purple",
+    "Wholesome": "green"
 }
+
+def show_mood_chart():
+    st.markdown("### 😎 Roast Bot Mood")
+    mood_labels = ["Savage 🔥", "SUS 🕵️", "Dark Humour 🖤", "Wholesome 😊"]
+    raw = np.random.rand(4)
+    percentages = (raw / raw.sum() * 100).round().astype(int)
+    mood_df = pd.DataFrame({
+        "Mood": mood_labels,
+        "Percentage": percentages
+    })
+    st.bar_chart(mood_df.set_index("Mood"), use_container_width=True)
 
 left, center, right = st.columns([2, 5, 2])
 
@@ -33,7 +47,6 @@ with left:
 
     st.markdown("---")
     st.markdown("### 📊 Bot Mood")
-
     mood = st.session_state.mood
     color = mood_colors[mood]
     fig, ax = plt.subplots(figsize=(3.5, 1.5))
@@ -44,6 +57,8 @@ with left:
     ax.set_title(mood)
     st.pyplot(fig)
 
+    show_mood_chart()
+
 def roast_message(user_msg):
     if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
         return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
@@ -53,7 +68,7 @@ def roast_message(user_msg):
         "Content-Type": "application/json"
     }
 
-    persona = f"Roast {st.session_state.username} with hard roast. in 2 lines Roast every single mssg like hi, how are u, no mercy, very hard roast which can push anyone to peak of stress, also roast if name gave except user also roas his name."
+    persona = f"Roast {st.session_state.username} with hard roast. In 2 lines. Roast every single msg like hi, how are u. No mercy. Push to peak of stress. If name given, roast the name too."
     messages = [{"role": "system", "content": persona}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
