@@ -33,7 +33,7 @@ mood_colors = {
 
 # Mood Bar Chart
 def show_mood_chart():
-    st.markdown("### 😎 Roast Bot Mood")
+    st.markdown("### 😎 Mood Meter")
     mood_labels = ["Savage 🔥", "SUS 🕵️", "Dark Humour 🖤", "Wholesome 😊"]
     raw = np.random.rand(4)
     percentages = (raw / raw.sum() * 100).round().astype(int)
@@ -52,7 +52,7 @@ with left:
     st.session_state.username = name.strip() or "user"
 
     st.markdown("---")
-    st.markdown("### 📊 Bot Mood")
+    st.markdown("### 📊 Bot Mood")  # <-- Changed title here!
     mood = st.session_state.mood
     color = mood_colors[mood]
     fig, ax = plt.subplots(figsize=(3.5, 1.5))
@@ -97,6 +97,9 @@ def roast_message(user_msg):
 def message_align(msg, sender="user"):
     align = "right" if sender == "user" else "left"
     emoji = "😎" if sender == "user" else "😏"
+    roast_emojis = ["🔥", "💀", "🥵", "🤡", "🗑️", "🧠", "🧯", "🙈", "🧃", "🥴"]
+    if sender == "bot":
+        msg += f" <span>{np.random.choice(roast_emojis)}</span>"
     html = f"<div style='text-align:{align}; margin:8px 0;'><b>{emoji}</b> {msg}</div>"
     st.markdown(html, unsafe_allow_html=True)
 
