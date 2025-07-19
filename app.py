@@ -8,11 +8,23 @@ api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.get
 
 st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥")
 
-# Username input at the very top
-username = st.text_input("Enter your name", key="username_input").strip() or "User"
-
 st.markdown(f"<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
+
+col_left, col_right = st.columns([4, 1])
+with col_left:
+    username = st.text_input("Your Name", key="username_input").strip() or "User"
+with col_right:
+    st.markdown("##### 🤖 Mood")
+    labels = ["SUS", "Savage", "Dark"]
+    values = [random.randint(10, 100) for _ in labels]
+    colors = ["#F39C12", "#E74C3C", "#8E44AD"]
+    fig, ax = plt.subplots(figsize=(2, 2))
+    ax.bar(labels, values, color=colors)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylim(0, 100)
+    st.pyplot(fig)
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -46,12 +58,10 @@ def message_align(msg, sender="user"):
     html = f"<div style='text-align:{align}; background-color:#f0f0f0; padding:10px; border-radius:10px; margin:8px 0; max-width:70%; display:inline-block;'><b>{emoji} {username if sender=='user' else 'R.O.A.S.T.'}</b><br>{msg}</div>"
     st.markdown(html, unsafe_allow_html=True)
 
-# Show chat history
 for chat in st.session_state.chat_history:
     message_align(chat["user"], "user")
     message_align(chat["bot"], "bot")
 
-# Input
 col1, col2 = st.columns([8, 1])
 with col1:
     user_input = st.text_input(" ", placeholder="Type your message...", label_visibility="collapsed", key="input")
@@ -63,16 +73,3 @@ if user_input and send:
         response = roast_message(user_input)
     st.session_state.chat_history.append({"user": user_input, "bot": response})
     st.rerun()
-
-# Random mood bar chart
-st.markdown("---")
-st.markdown("### 🤖 Bot Mood")
-labels = ["SUS", "Savage", "Dark Humour"]
-values = [random.randint(10, 100) for _ in labels]
-colors = ["#F39C12", "#E74C3C", "#8E44AD"]
-
-fig, ax = plt.subplots()
-ax.bar(labels, values, color=colors)
-ax.set_ylim(0, 100)
-ax.set_ylabel("Intensity")
-st.pyplot(fig)
