@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 import os
-import random
 import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
@@ -16,11 +15,14 @@ if "chat_history" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-if "sarcasm" not in st.session_state:
-    st.session_state.sarcasm = 2
-
 if "mood" not in st.session_state:
-    st.session_state.mood = random.choice(["SUS", "Savage", "Dark Humour"])
+    st.session_state.mood = "Savage"
+
+mood_colors = {
+    "SUS": "orange",
+    "Savage": "red",
+    "Dark Humour": "purple"
+}
 
 left, center, right = st.columns([2, 5, 2])
 
@@ -30,19 +32,16 @@ with left:
     st.session_state.username = name.strip() or "user"
 
     st.markdown("---")
-    st.markdown("### 🧠 Roast Intelligence")
-    sarcasm = st.slider("Sarcasm Level", 1, 3, st.session_state.sarcasm, format="🔥" * st.session_state.sarcasm)
-    st.session_state.sarcasm = sarcasm
-
-    st.markdown("---")
     st.markdown("### 📊 Bot Mood")
 
     mood = st.session_state.mood
-    fig, ax = plt.subplots(figsize=(2, 2))
-    ax.bar(["Mood"], [1], color=random.choice(["orange", "purple", "red"]))
-    ax.set_ylim(0, 1.5)
+    color = mood_colors[mood]
+    fig, ax = plt.subplots(figsize=(3.5, 1.5))
+    ax.barh([mood], [100], color=color)
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Mood Intensity (%)")
+    ax.set_yticks([])
     ax.set_title(mood)
-    ax.axis('off')
     st.pyplot(fig)
 
 def roast_message(user_msg):
@@ -54,9 +53,7 @@ def roast_message(user_msg):
         "Content-Type": "application/json"
     }
 
-    tone = "mild" if st.session_state.sarcasm == 1 else "medium" if st.session_state.sarcasm == 2 else "savage"
-    persona = f"Roast {st.session_state.username} with {tone} sarcasm. Be witty, sharp, and ruthless."
-
+    persona = f"Roast {st.session_state.username} with savage sarcasm. Be witty, sharp, dark, and ruthless."
     messages = [{"role": "system", "content": persona}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
