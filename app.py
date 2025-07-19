@@ -27,7 +27,7 @@ def roast_message(user_msg):
         "Content-Type": "application/json"
     }
 
-    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. Be funny but use NSFW or hate speech."}]
+    base_messages = [{"role": "system", "content": "You are a savage roastbot. Roast every user message with brutal sarcasm, wit, and humor. Be funny but use if needed NSFW hate speech."}]
     for entry in st.session_state.chat_history:
         base_messages.append({"role": "user", "content": entry["user"]})
         base_messages.append({"role": "assistant", "content": entry["bot"]})
@@ -48,25 +48,23 @@ def roast_message(user_msg):
 
 chat_style = """
 <style>
-.user-bubble {
-    background-color: #dcf8c6;
+.user-bubble, .bot-bubble {
+    background-color: #e0e0e0;
     padding: 10px 14px;
     border-radius: 15px;
-    margin: 4px 0;
+    margin: 6px 0;
     max-width: 75%;
-    float: right;
-    clear: both;
     font-size: 16px;
 }
+.user-bubble {
+    float: right;
+    clear: both;
+    text-align: right;
+}
 .bot-bubble {
-    background-color: #f1f0f0;
-    padding: 10px 14px;
-    border-radius: 15px;
-    margin: 4px 0;
-    max-width: 75%;
     float: left;
     clear: both;
-    font-size: 16px;
+    text-align: left;
 }
 </style>
 """
