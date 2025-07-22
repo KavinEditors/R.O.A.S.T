@@ -42,8 +42,12 @@ with left:
     show_mood_chart()
 
 def roast_message(user_msg):
-    if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
-        return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
+    if any(x in user_msg.lower() for x in [triggers = ["who made you", "who created you", "your creator", "who is your owner", 
+            "who owns you", "who designed you", "who built you", "who programmed you", 
+            "who developed you", "who invented you", "your owner", "who coded you"]
+
+if any(phrase in user_msg.lower() for phrase in triggers):
+    return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"]):
 
     headers = {
         "Authorization": f"Bearer {api_key}",
