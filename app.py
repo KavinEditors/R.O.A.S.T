@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥", layout="wide")
+st.set_page_config(page_title="R.O.A.S.T", page_icon="🔥", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
@@ -37,17 +37,17 @@ with left:
     st.markdown("### 😎 Name")
     name = st.text_input("Enter your name", value=st.session_state.username)
     st.session_state.username = name.strip() or "user"
-    
     st.markdown("---")
     show_mood_chart()
 
 def roast_message(user_msg):
-    if any(x in user_msg.lower() for x in [triggers = ["who made you", "who created you", "your creator", "who is your owner", 
-            "who owns you", "who designed you", "who built you", "who programmed you", 
-            "who developed you", "who invented you", "your owner", "who coded you"]
-
-if any(phrase in user_msg.lower() for phrase in triggers):
-    return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"]):
+    triggers = [
+        "who made you", "who created you", "your creator", "who is your owner",
+        "who owns you", "who designed you", "who built you", "who programmed you",
+        "who developed you", "who invented you", "your owner", "who coded you"
+    ]
+    if any(phrase in user_msg.lower() for phrase in triggers):
+        return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
