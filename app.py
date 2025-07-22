@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-st.set_page_config(page_title="R.O.A.S.T", page_icon="🔥", layout="wide")
+st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
@@ -41,6 +41,9 @@ with left:
     show_mood_chart()
 
 def roast_message(user_msg):
+    if st.session_state.username.lower() in ["kavin", "kavin j m"]:
+        return f"😤 You dare try to roast my creator? Sit down before you get flash-fried. 🔥🧠"
+
     triggers = [
         "who made you", "who created you", "your creator", "who is your owner",
         "who owns you", "who designed you", "who built you", "who programmed you",
