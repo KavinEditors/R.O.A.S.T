@@ -80,10 +80,16 @@ def roast_message(user_msg):
         return f"😏 💥 Error: {str(e)}"
 
 def message_align(msg, sender="user"):
-    align = "right" if sender == "user" else "left"
+    align = "flex-end" if sender == "user" else "flex-start"
     emoji = "😎" if sender == "user" else "😏"
-    html = f"<div style='text-align:{align}; margin:8px 0;'><b>{emoji}</b> {msg}</div>"
-    st.markdown(html, unsafe_allow_html=True)
+    bg = "#f0f0f0"
+    st.markdown(f"""
+        <div style='display: flex; justify-content: {align}; margin: 10px 0;'>
+            <div style='background-color: {bg}; padding: 10px 15px; border-radius: 15px; max-width: 75%; font-size: 16px;'>
+                <span><b>{emoji}</b> {msg}</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 with center:
     for chat in st.session_state.chat_history:
