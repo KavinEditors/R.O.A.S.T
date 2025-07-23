@@ -58,7 +58,7 @@ def message_align(msg, sender="user"):
 
 def roast_message(user_msg):
     lower_msg = user_msg.lower()
-    if any(kw in lower_msg for kw in ["who made you", "who created you", "your creator", "kavin", "kavin j m"]):
+    if any(kw in lower_msg for kw in ["who made you", "who created you", "your creator", "Kavin", "kavin j m", "Kavin J M"]):
         return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
 
     headers = {
@@ -66,7 +66,7 @@ def roast_message(user_msg):
         "Content-Type": "application/json"
     }
 
-    persona = f"Roast {st.session_state.username} with savage sarcasm. Be witty, sharp, dark, and ruthless."
+    persona = f"Roast {st.session_state.username} with savage sarcasm. Be witty, sharp, dark, and ruthless. roast evrything like hi etc in 2 to 3 lines."
     messages = [{"role": "system", "content": persona}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
