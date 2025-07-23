@@ -1,12 +1,13 @@
 import streamlit as st
 import requests
 import os
-import random
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-st.set_page_config(page_title="R.O.A.S.T.🔥", page_icon="🔥", layout="wide")
+st.set_page_config(page_title="R.O.A.S.T", page_icon="🔥", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
@@ -17,41 +18,50 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 
 if "mood" not in st.session_state:
-    st.session_state.mood = random.choice(["SUS", "Savage", "Dark Humour"])
+    st.session_state.mood = "Savage"
 
-if "theme" not in st.session_state:
-    st.session_state.theme = "light"
+def show_mood_chart():
+    st.markdown("### 😎 Roast Bot Mood")
+    mood_labels = ["Savage 🔥", "SUS 🕵️", "Dark Humour 🖤", "Wholesome 😊"]
+    raw = np.random.rand(4)
+    percentages = (raw / raw.sum() * 100).round().astype(int)
+    mood_df = pd.DataFrame({
+        "Mood": mood_labels,
+        "Percentage": percentages
+    })
+    st.bar_chart(mood_df.set_index("Mood"), use_container_width=True)
 
-mood_colors = {
-    "SUS": "orange",
-    "Savage": "red",
-    "Dark Humour": "purple"
-}
+left, center, right = st.columns([2, 5, 2])
 
-def message_align(msg, sender="user"):
-    align = "flex-end" if sender == "user" else "flex-start"
-    emoji = "😎" if sender == "user" else "😏"
-    html = f"""
-    <div style='display: flex; justify-content: {align}; margin: 10px 0;'>
-        <div style='background-color: #e0e0e0; padding: 10px 15px; border-radius: 15px; max-width: 70%; color: black;'>
-            <b>{emoji}</b> {msg}
-        </div>
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
+with left:
+    st.markdown("### 😎 Name")
+    name = st.text_input("Enter your name", value=st.session_state.username)
+    if name.strip():
+        st.session_state.username = name.strip()
+    else:
+        st.session_state.username = "user"
+    st.markdown("---")
+    show_mood_chart()
 
 def roast_message(user_msg):
-    if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
+    user = st.session_state.username.lower().strip()
+    if user in ["kavin", "kavin j m"]:
+        return "😤 You dare try to roast my creator? Sit down before you get flash-fried. 🔥🧠"
+
+    triggers = [
+        "who made you", "who created you", "your creator", "who is your owner",
+        "who owns you", "who designed you", "who built you", "who programmed you",
+        "who developed you", "who invented you", "your owner", "who coded you"
+    ]
+    if any(phrase in user_msg.lower() for phrase in triggers):
         return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
-    if any(x in user_msg.lower() for x in ["kavin", "kavin j m"]):
-        return f"Don't even try to roast the roastmaster <b>Kavin J M</b>. You're not worthy 🧠🔥"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
-    persona = f"Roast {st.session_state.username} with savage sarcasm. Be witty, sharp, dark, and ruthless. in 4 to 3 lines"
+    persona = f"Roast {st.session_state.username} with hard roast. In 2 lines. Roast every single msg like hi, how are u. No mercy. Push to peak of stress. If name given, roast the name too."
     messages = [{"role": "system", "content": persona}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
@@ -69,29 +79,17 @@ def roast_message(user_msg):
     except Exception as e:
         return f"😏 💥 Error: {str(e)}"
 
-left, center, right = st.columns([2, 5, 2])
-
-with right:
-    if st.button("🌃 Dark Mode"):
-        st.session_state.theme = "dark"
-    if st.button("🌇 Light Mode"):
-        st.session_state.theme = "light"
-
-with left:
-    st.markdown("### 🧍 Name")
-    name = st.text_input("Enter your name", value=st.session_state.username)
-    st.session_state.username = name.strip() or "user"
-    st.markdown("---")
-    st.markdown("### 📊 Bot Mood")
-    mood = st.session_state.mood
-    color = mood_colors[mood]
-    fig, ax = plt.subplots(figsize=(3.5, 1.5))
-    ax.barh([mood], [100], color=color)
-    ax.set_xlim(0, 100)
-    ax.set_xlabel("Mood Intensity (%)")
-    ax.set_yticks([])
-    ax.set_title(mood)
-    st.pyplot(fig)
+def message_align(msg, sender="user"):
+    align = "flex-end" if sender == "user" else "flex-start"
+    emoji = "😎" if sender == "user" else "😏"
+    bg = "#f0f0f0"
+    st.markdown(f"""
+        <div style='display: flex; justify-content: {align}; margin: 10px 0;'>
+            <div style='background-color: {bg}; padding: 10px 15px; border-radius: 15px; max-width: 75%; font-size: 16px;'>
+                <span><b>{emoji}</b> {msg}</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 with center:
     for chat in st.session_state.chat_history:
