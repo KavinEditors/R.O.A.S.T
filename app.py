@@ -5,12 +5,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# API Key
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
+# Page config
 st.set_page_config(page_title="R.O.A.S.T", page_icon="🔥", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
+# Session states
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -20,6 +23,7 @@ if "username" not in st.session_state:
 if "mood" not in st.session_state:
     st.session_state.mood = "Savage"
 
+# Mood Chart
 def show_mood_chart():
     st.markdown("### 😎 Roast Bot Mood")
     mood_labels = ["Savage 🔥", "SUS 🕵️", "Dark Humour 🖤", "Wholesome 😊"]
@@ -31,6 +35,7 @@ def show_mood_chart():
     })
     st.bar_chart(mood_df.set_index("Mood"), use_container_width=True)
 
+# Layout
 left, center, right = st.columns([2, 5, 2])
 
 with left:
@@ -43,10 +48,11 @@ with left:
     st.markdown("---")
     show_mood_chart()
 
+# Roast Function
 def roast_message(user_msg):
     user = st.session_state.username.lower().strip()
     if user in ["kavin", "kavin j m"]:
-        return "😤 You dare try to roast my creator? Sit down before you get flash-fried. 🔥🧠"
+        return "😤 You dare try to roast my creator? Sit down before you get flash-fried. 🔥🧠 Now bow to the roast god."
 
     triggers = [
         "who made you", "who created you", "your creator", "who is your owner",
@@ -79,18 +85,22 @@ def roast_message(user_msg):
     except Exception as e:
         return f"😏 💥 Error: {str(e)}"
 
+# Bubbled message display with outline only
 def message_align(msg, sender="user"):
     align = "flex-end" if sender == "user" else "flex-start"
+    border_color = "#888"
     emoji = "😎" if sender == "user" else "😏"
-    bg = "#f0f0f0"
     st.markdown(f"""
         <div style='display: flex; justify-content: {align}; margin: 10px 0;'>
-            <div style='background-color: {bg}; padding: 10px 15px; border-radius: 15px; max-width: 75%; font-size: 16px;'>
+            <div style='border: 1.5px solid {border_color}; background-color: transparent;
+                        padding: 10px 15px; border-radius: 15px; max-width: 75%;
+                        font-size: 16px; color: black;'>
                 <span><b>{emoji}</b> {msg}</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
+# Chat area
 with center:
     for chat in st.session_state.chat_history:
         message_align(chat["user"], "user")
