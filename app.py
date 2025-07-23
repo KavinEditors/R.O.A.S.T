@@ -5,23 +5,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Get API Key
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
 
-# Page config
 st.set_page_config(page_title="R.O.A.S.T", page_icon="🔥", layout="wide")
 st.markdown("<h1 style='text-align:center;'>🔥 R.O.A.S.T.</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Terminator 💀</p>", unsafe_allow_html=True)
 
-# Session state setup
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "username" not in st.session_state:
     st.session_state.username = ""
 if "mood" not in st.session_state:
     st.session_state.mood = "Savage"
+if "theme" not in st.session_state:
+    st.session_state.theme = "dark"
 
-# Mood chart
 def show_mood_chart():
     st.markdown("### 😎 Roast Bot Mood")
     mood_labels = ["Savage 🔥", "SUS 🕵️", "Dark Humour 🖤", "Wholesome 😊"]
@@ -33,10 +31,14 @@ def show_mood_chart():
     })
     st.bar_chart(mood_df.set_index("Mood"), use_container_width=True)
 
-# Layout
 left, center, right = st.columns([2, 5, 2])
 
-# Name input + Mood chart
+with right:
+    if st.button("🌃 Dark Mode"):
+        st.session_state.theme = "dark"
+    if st.button("🌇 Light Mode"):
+        st.session_state.theme = "light"
+
 with left:
     st.markdown("### 😎 Name")
     name = st.text_input("Enter your name", value=st.session_state.username)
@@ -47,15 +49,8 @@ with left:
     st.markdown("---")
     show_mood_chart()
 
-# Roast message logic
 def roast_message(user_msg):
     user = st.session_state.username.lower().strip()
-
-    # Protect creator
-    if user in ["kavin", "kavin j m"]:
-        return "😤 You dare try to roast my creator? Sit down before you get flash-fried. 🔥🧠 This is sacred ground, mortal."
-
-    # Respond to creator questions
     triggers = [
         "who made you", "who created you", "your creator", "who is your owner",
         "who owns you", "who designed you", "who built you", "who programmed you",
@@ -63,6 +58,10 @@ def roast_message(user_msg):
     ]
     if any(phrase in user_msg.lower() for phrase in triggers):
         return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
+    
+    special_terms = ["kavin", "kavin j m", "kavinjm"]
+    if user_msg.lower().strip() in special_terms:
+        return "😤 You can't roast the roastmaster. He's immune to petty burns. 🔥🧠"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -87,22 +86,26 @@ def roast_message(user_msg):
     except Exception as e:
         return f"😏 💥 Error: {str(e)}"
 
-# Bubble style chat (white text, outline only)
 def message_align(msg, sender="user"):
     align = "flex-end" if sender == "user" else "flex-start"
-    border_color = "#888"
     emoji = "😎" if sender == "user" else "😏"
+    if st.session_state.theme == "dark":
+        border_color = "white"
+        text_color = "white"
+    else:
+        border_color = "black"
+        text_color = "black"
+
     st.markdown(f"""
         <div style='display: flex; justify-content: {align}; margin: 10px 0;'>
             <div style='border: 1.5px solid {border_color}; background-color: transparent;
                         padding: 10px 15px; border-radius: 15px; max-width: 75%;
-                        font-size: 16px; color: white;'>
+                        font-size: 16px; color: {text_color};'>
                 <span><b>{emoji}</b> {msg}</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
-# Chat display and input
 with center:
     for chat in st.session_state.chat_history:
         message_align(chat["user"], "user")
