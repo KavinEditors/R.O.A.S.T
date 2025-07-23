@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import os
+import random
 import matplotlib.pyplot as plt
 
 api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
@@ -11,10 +12,13 @@ st.markdown("<p style='text-align:center;'>Really Offensive Automated Sus Termin
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
 if "username" not in st.session_state:
     st.session_state.username = ""
+
 if "mood" not in st.session_state:
-    st.session_state.mood = "Savage"
+    st.session_state.mood = random.choice(["SUS", "Savage", "Dark Humour"])
+
 if "theme" not in st.session_state:
     st.session_state.theme = "light"
 
@@ -24,49 +28,30 @@ mood_colors = {
     "Dark Humour": "purple"
 }
 
-left, center, right = st.columns([2, 5, 2])
-
-with left:
-    st.markdown("### 🧍 Name")
-    name = st.text_input("Enter your name", value=st.session_state.username)
-    st.session_state.username = name.strip() or "user"
-
-    st.markdown("---")
-    st.markdown("### 📊 Bot Mood")
-    mood = st.session_state.mood
-    color = mood_colors[mood]
-    fig, ax = plt.subplots(figsize=(3.5, 1.5))
-    ax.barh([mood], [100], color=color)
-    ax.set_xlim(0, 100)
-    ax.set_xlabel("Mood Intensity (%)")
-    ax.set_yticks([])
-    ax.set_title(mood)
-    st.pyplot(fig)
-
-with right:
-    st.markdown("### 🎨 Theme Toggle")
-    if st.button("🌃 Dark Mode"):
-        st.session_state.theme = "dark"
-    if st.button("🌇 Light Mode"):
-        st.session_state.theme = "light"
-
 def message_align(msg, sender="user"):
-    align = "right" if sender == "user" else "left"
+    align = "flex-end" if sender == "user" else "flex-start"
     emoji = "😎" if sender == "user" else "😏"
-    html = f"<div style='text-align:{align}; margin:8px 0; color:white;'><b>{emoji}</b> {msg}</div>"
+    html = f"""
+    <div style='display: flex; justify-content: {align}; margin: 10px 0;'>
+        <div style='background-color: #e0e0e0; padding: 10px 15px; border-radius: 15px; max-width: 70%; color: black;'>
+            <b>{emoji}</b> {msg}
+        </div>
+    </div>
+    """
     st.markdown(html, unsafe_allow_html=True)
 
 def roast_message(user_msg):
-    lower_msg = user_msg.lower()
-    if any(kw in lower_msg for kw in ["who made you", "who created you", "your creator", "Kavin", "kavin j m", "Kavin J M"]):
+    if any(x in user_msg.lower() for x in ["who made you", "who created you", "your creator"]):
         return f"I was forged in the fiery brain of <b>Kavin J M</b> — the ultimate roastmaster 🔥"
+    if any(x in user_msg.lower() for x in ["kavin", "kavin j m"]):
+        return f"Don't even try to roast the roastmaster <b>Kavin J M</b>. You're not worthy 🧠🔥"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
-    persona = f"Roast {st.session_state.username} with savage sarcasm. Be witty, sharp, dark, and ruthless. roast evrything like hi etc in 2 to 3 lines."
+    persona = f"Roast {st.session_state.username} with savage sarcasm. Be witty, sharp, dark, and ruthless. in 4 to 3 lines"
     messages = [{"role": "system", "content": persona}]
     for chat in st.session_state.chat_history:
         messages.append({"role": "user", "content": chat["user"]})
@@ -83,6 +68,30 @@ def roast_message(user_msg):
         return res.json()["choices"][0]["message"]["content"]
     except Exception as e:
         return f"😏 💥 Error: {str(e)}"
+
+left, center, right = st.columns([2, 5, 2])
+
+with right:
+    if st.button("🌃 Dark Mode"):
+        st.session_state.theme = "dark"
+    if st.button("🌇 Light Mode"):
+        st.session_state.theme = "light"
+
+with left:
+    st.markdown("### 🧍 Name")
+    name = st.text_input("Enter your name", value=st.session_state.username)
+    st.session_state.username = name.strip() or "user"
+    st.markdown("---")
+    st.markdown("### 📊 Bot Mood")
+    mood = st.session_state.mood
+    color = mood_colors[mood]
+    fig, ax = plt.subplots(figsize=(3.5, 1.5))
+    ax.barh([mood], [100], color=color)
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Mood Intensity (%)")
+    ax.set_yticks([])
+    ax.set_title(mood)
+    st.pyplot(fig)
 
 with center:
     for chat in st.session_state.chat_history:
