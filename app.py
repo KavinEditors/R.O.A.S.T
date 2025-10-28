@@ -76,15 +76,23 @@ def roast_message(user_msg):
     messages.append({"role": "user", "content": user_msg})
 
     try:
-        res = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers=headers,
-            json={"model": "llama3-8b-8192", "messages": messages}
-        )
+        # ✅ Fixed: Correct Groq endpoint and payload structure
+        url = "https://api.groq.com/v1/chat/completions"
+        messages = [m for m in messages if m.get("content")]
+        payload = {
+            "model": "llama3-8b-8192",
+            "messages": messages,
+            "temperature": 0.8
+        }
+
+        res = requests.post(url, headers=headers, json=payload)
         res.raise_for_status()
         return res.json()["choices"][0]["message"]["content"]
+
+    except requests.exceptions.HTTPError:
+        return f"💥 API Error: {res.text}"
     except Exception as e:
-        return f"😏 💥 Error: {str(e)}"
+        return f"⚠️ Unexpected Error: {str(e)}"
 
 def message_align(msg, sender="user"):
     align = "flex-end" if sender == "user" else "flex-start"
@@ -122,3 +130,4 @@ with center:
             response = roast_message(user_input)
         st.session_state.chat_history.append({"user": user_input, "bot": response})
         st.rerun()
+        
