@@ -80,10 +80,10 @@ def roast_message(user_msg):
     messages = [m for m in messages if m.get("content")]
 
     try:
-        # ✅ Correct and verified Groq API endpoint
+        #  Correct and verified Groq API endpoint
         url = "https://api.groq.com/openai/v1/chat/completions"
         payload = {
-            "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": messages,
             "temperature": 0.8
         }
