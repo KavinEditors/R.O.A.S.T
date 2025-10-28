@@ -63,6 +63,9 @@ def roast_message(user_msg):
     if user_msg.lower().strip() in special_terms:
         return "😤 You can't roast the roastmaster. He's immune to petty burns. 🔥🧠"
 
+    if not api_key:
+        return "⚠️ Missing GROQ_API_KEY. Please add it in your Streamlit secrets."
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
@@ -74,11 +77,11 @@ def roast_message(user_msg):
         messages.append({"role": "user", "content": chat["user"]})
         messages.append({"role": "assistant", "content": chat["bot"]})
     messages.append({"role": "user", "content": user_msg})
+    messages = [m for m in messages if m.get("content")]
 
     try:
-        # ✅ Fixed: Correct Groq endpoint and payload structure
-        url = "https://api.groq.com/v1/chat/completions"
-        messages = [m for m in messages if m.get("content")]
+        # ✅ Correct and verified Groq API endpoint
+        url = "https://api.groq.com/openai/v1/chat/completions"
         payload = {
             "model": "llama3-8b-8192",
             "messages": messages,
@@ -87,9 +90,14 @@ def roast_message(user_msg):
 
         res = requests.post(url, headers=headers, json=payload)
         res.raise_for_status()
-        return res.json()["choices"][0]["message"]["content"]
+        data = res.json()
 
-    except requests.exceptions.HTTPError:
+        if "choices" in data and len(data["choices"]) > 0:
+            return data["choices"][0]["message"]["content"]
+        else:
+            return "🤖 No roast generated. Groq returned an empty response."
+
+    except requests.exceptions.HTTPError as e:
         return f"💥 API Error: {res.text}"
     except Exception as e:
         return f"⚠️ Unexpected Error: {str(e)}"
